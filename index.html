@@ -681,6 +681,9 @@
           <button class="map-type-btn" id="satellite-map-btn">
             <i class="fas fa-satellite"></i> <span>Satélite</span>
           </button>
+          <button class="map-type-btn" id="googleearth-map-btn">
+            <i class="fas fa-globe-americas"></i> <span>Google Earth</span>
+          </button>
         </div>
 
         <select id="asset-type-selector" title="Tipo de activo para clic en mapa">
@@ -853,7 +856,7 @@
         </div>
 
         <div class="copyright">
-          &copy; 2025 FTTH-SV-RT - Todos los derechos reservados para Roberto Trejo
+          &copy; 2023 FTTH-SV-RT - Todos los derechos reservados para Roberto Trejo
         </div>
       </aside>
     </div>
@@ -942,7 +945,7 @@
     let showLabels = true;
 
     let currentMapType = "standard";
-    let standardTileLayer, satelliteTileLayer;
+    let standardTileLayer, satelliteTileLayer, googleEarthTileLayer;
 
     let currentCableType = "fo";
     let cablePoints = [];
@@ -1036,6 +1039,16 @@
         {
           attribution: "Tiles &copy; Esri",
           maxZoom: 19,
+        }
+      );
+
+      // Capa de Google Earth (Google Maps Satelital)
+      googleEarthTileLayer = L.tileLayer(
+        "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+        {
+          attribution: "Google Earth",
+          maxZoom: 20,
+          subdomains: ["mt0", "mt1", "mt2", "mt3"],
         }
       );
 
@@ -1484,7 +1497,6 @@
           <div class="popup-actions">
             <button class="popup-btn" onclick="selectAsset('${asset.id}')">Editar</button>
             <button class="popup-btn" onclick="deleteAsset('${asset.id}')">Eliminar</button>
-          </div
           </div>
         </div>
       `);
@@ -1548,20 +1560,30 @@
     function switchMapType(type) {
       if (currentMapType === type) return;
 
+      // Remover todas las capas de mapa existentes
+      map.removeLayer(standardTileLayer);
+      map.removeLayer(satelliteTileLayer);
+      map.removeLayer(googleEarthTileLayer);
+
+      // Añadir la capa seleccionada
       if (type === "standard") {
-        map.removeLayer(satelliteTileLayer);
         standardTileLayer.addTo(map);
-        currentMapType = "standard";
         document.getElementById("standard-map-btn").classList.add("active");
         document.getElementById("satellite-map-btn").classList.remove("active");
+        document.getElementById("googleearth-map-btn").classList.remove("active");
       } else if (type === "satellite") {
-        map.removeLayer(standardTileLayer);
         satelliteTileLayer.addTo(map);
-        currentMapType = "satellite";
         document.getElementById("satellite-map-btn").classList.add("active");
         document.getElementById("standard-map-btn").classList.remove("active");
+        document.getElementById("googleearth-map-btn").classList.remove("active");
+      } else if (type === "googleearth") {
+        googleEarthTileLayer.addTo(map);
+        document.getElementById("googleearth-map-btn").classList.add("active");
+        document.getElementById("standard-map-btn").classList.remove("active");
+        document.getElementById("satellite-map-btn").classList.remove("active");
       }
 
+      currentMapType = type;
       localStorage.setItem("ftth_sv_rt_map_type", type);
     }
 
@@ -1837,6 +1859,7 @@
       // Selector de tipo de mapa
       document.getElementById("standard-map-btn").addEventListener("click", () => switchMapType("standard"));
       document.getElementById("satellite-map-btn").addEventListener("click", () => switchMapType("satellite"));
+      document.getElementById("googleearth-map-btn").addEventListener("click", () => switchMapType("googleearth"));
 
       // Selector de tipo de cable
       document.querySelectorAll(".cable-option").forEach(option => {
@@ -1990,4 +2013,3 @@
   </script>
 </body>
 </html>
-
